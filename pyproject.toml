@@ -24,7 +24,12 @@ classifiers = [
 # Runtime dependencies are intentionally empty at scaffold time.
 # Add analysis libraries here as the project actually needs them, e.g.:
 #   dependencies = ["pandas>=2.2", "numpy>=2.0", "matplotlib>=3.9"]
-dependencies = []
+dependencies = [
+    "numpy>=2.4.6",
+    "pandas>=3.0.5",
+    "scikit-learn>=1.9.0",
+    "xlrd>=2.0.2",
+]
 
 [project.urls]
 Repository = "https://github.com/BenFlint123/uv_ruff_ds_template"
