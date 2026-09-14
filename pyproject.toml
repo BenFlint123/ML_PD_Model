@@ -25,6 +25,7 @@ classifiers = [
 # Add analysis libraries here as the project actually needs them, e.g.:
 #   dependencies = ["pandas>=2.2", "numpy>=2.0", "matplotlib>=3.9"]
 dependencies = [
+    "lightgbm>=4.7.0",
     "numpy>=2.4.6",
     "pandas>=3.0.5",
     "plotly>=7.0.0",
