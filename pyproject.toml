@@ -25,10 +25,10 @@ classifiers = [
 # Add analysis libraries here as the project actually needs them, e.g.:
 #   dependencies = ["pandas>=2.2", "numpy>=2.0", "matplotlib>=3.9"]
 dependencies = [
-    "numpy>=2.4.6",
+    "numpy>=2.5.3",
     "pandas>=3.0.5",
     "plotly>=7.0.0",
-    "scikit-learn>=1.9.0",
+    "scikit-learn>=1.9.1",
     "xlrd>=2.0.2",
 ]
 
@@ -52,12 +52,12 @@ packages = ["lib"]
 dev = [
     "coverage[toml]>=7.15.4",
     "ipykernel>=6.29.0",
-    "jupyterlab>=4.3.0",
+    "jupyterlab>=4.6.3",
     "pandas-stubs>=3.0.5.260730",
-    "pre-commit>=4.0.0",
+    "pre-commit>=4.6.2",
     "pytest>=9.1.0",
     "pytest-cov>=5.0.0",
-    "ruff>=0.16.2",
+    "ruff>=0.16.7",
 ]
 
 # ----------------------------------------------------------------------------
