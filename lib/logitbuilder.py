@@ -1,3 +1,5 @@
+from typing import Self
+
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -18,7 +20,7 @@ class LogitModelBuilder(ClassifierBuilder):
     def run(self):
         if self.X_train is None:
             self.split_data_by_independent_and_target_variables()
-        self.build_model
+        self.build_model()
         self.train()
         self.predict_train_set()
         self.predict_test_set()
@@ -39,26 +41,6 @@ class LogitModelBuilder(ClassifierBuilder):
 
         return return_dict
 
-    def split_data_by_independent_and_target_variables(self) -> Self:
-        self.X_train = self.input_train_data[self.independent_variables].copy()
-        self.y_train = np.array(
-            self.input_train_data[[self.target_variable]].copy()
-        ).ravel()
-
-        self.X_test = self.input_test_data[self.independent_variables].copy()
-        self.y_test = np.array(
-            self.input_test_data[[self.target_variable]].copy()
-        ).ravel()
-
-        if self.input_holdout_data is not None:
-            self.X_holdout = self.input_holdout_data[self.independent_variables].copy()
-            self.y_holdout = np.array(
-                self.input_holdout_data[[self.target_variable]].copy()
-            ).ravel()
-            return self
-
-        return self
-
     def train(self) -> Self:
         if self.X_train is None or self.y_train is None:
             raise RuntimeError(
@@ -66,7 +48,9 @@ class LogitModelBuilder(ClassifierBuilder):
                 "split_data_by_independent_and_target_variables() first, or "
                 "construct via from_split_data()."
             )
-        self.trained_model = self.model.fit(self.X_train, self.y_train)
+        if self.model is None:
+            raise RuntimeError("Model has not been built. Call build_model() first.")
+        self.trained_model = self.model.fit(**self.fit_parameters)
         return self
 
     def predict_train_set(self) -> Self:
@@ -76,9 +60,7 @@ class LogitModelBuilder(ClassifierBuilder):
             )
         assert self.X_train is not None  # guaranteed by train()
 
-        self.train_predicted = np.asarray(
-            self.trained_model.predict_proba(self.X_train)
-        )[:, 1]
+        self.train_predicted = np.asarray(self.trained_model.predict(self.X_train))
 
         return self
 
@@ -89,9 +71,7 @@ class LogitModelBuilder(ClassifierBuilder):
             )
         assert self.X_test is not None  # guaranteed by train()
 
-        self.test_predicted = np.asarray(self.trained_model.predict_proba(self.X_test))[
-            :, 1
-        ]
+        self.test_predicted = np.asarray(self.trained_model.predict(self.X_test))
 
         return self
 
@@ -105,9 +85,7 @@ class LogitModelBuilder(ClassifierBuilder):
                 "Holdout data not provided. Cannot predict for holdout sample."
             )
 
-        self.holdout_predicted = np.asarray(
-            self.trained_model.predict_proba(self.X_holdout)
-        )[:, 1]
+        self.holdout_predicted = np.asarray(self.trained_model.predict(self.X_holdout))
 
         return self
 
@@ -121,7 +99,7 @@ def main():
         print(f"{k}: \n{v}\n")
 
     model_params_dict = {"verbose": 2}
-    results_dict = lgbm_model = LightGbmModelBuilder.from_split_data(
+    results_dict = lgbm_model = LogitModelBuilder.from_split_data(
         datasets["X_train"],
         datasets["y_train"],
         datasets["X_test"],

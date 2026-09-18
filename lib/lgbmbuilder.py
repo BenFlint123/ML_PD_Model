@@ -8,12 +8,13 @@ from lib.modelbuilder import ClassifierBuilder
 
 
 class LightGbmModelBuilder(ClassifierBuilder):
-    def _build_model(self) -> None:
+    def build_model(self) -> None:
         self.model = lgbm.LGBMClassifier(**self.model_parameters)
 
     def run(self):
         if self.X_train is None:
             self.split_data_by_independent_and_target_variables()
+        self.build_model()
         self.train()
         self.predict_train_set()
         self.predict_test_set()
@@ -34,26 +35,6 @@ class LightGbmModelBuilder(ClassifierBuilder):
 
         return return_dict
 
-    def split_data_by_independent_and_target_variables(self) -> Self:
-        self.X_train = self.input_train_data[self.independent_variables].copy()
-        self.y_train = np.array(
-            self.input_train_data[[self.target_variable]].copy()
-        ).ravel()
-
-        self.X_test = self.input_test_data[self.independent_variables].copy()
-        self.y_test = np.array(
-            self.input_test_data[[self.target_variable]].copy()
-        ).ravel()
-
-        if self.input_holdout_data is not None:
-            self.X_holdout = self.input_holdout_data[self.independent_variables].copy()
-            self.y_holdout = np.array(
-                self.input_holdout_data[[self.target_variable]].copy()
-            ).ravel()
-            return self
-
-        return self
-
     def train(self) -> Self:
         if self.X_train is None or self.y_train is None:
             raise RuntimeError(
@@ -61,7 +42,8 @@ class LightGbmModelBuilder(ClassifierBuilder):
                 "split_data_by_independent_and_target_variables() first, or "
                 "construct via from_split_data()."
             )
-        self._build_model()
+        if self.model is None:
+            raise RuntimeError("Model has not been built. Call build_model() first.")
         self.trained_model = self.model.fit(self.X_train, self.y_train)
         return self
 

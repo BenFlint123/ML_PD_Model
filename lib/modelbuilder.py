@@ -22,9 +22,11 @@ class ModelBuilder(ABC):
         input_test_data: pd.DataFrame,
         independent_variables: list,
         target_variable: str,
-        model_parameters: dict,
-        random_state: int = 42,
         input_holdout_data: pd.DataFrame | None = None,
+        random_state: int = 42,
+        model_parameters: dict | None = None,
+        fit_parameters: dict | None = None,
+        model: Any | None = None,
         trained_model: Any | None = None,
     ):
         """_summary_
@@ -39,13 +41,19 @@ class ModelBuilder(ABC):
             input_holdout_data (pd.DataFrame | None, optional): _description_. Defaults to None.
             trained_model (Any | None, optional): _description_. Defaults to None.
         """
+        # input datasets
         self.input_train_data = input_train_data
         self.input_test_data = input_test_data
         self.input_holdout_data = input_holdout_data
+        # variable names
         self.independent_variables = independent_variables
         self.target_variable = target_variable
-        self.model_parameters = model_parameters
-        self.model_parameters["random_state"] = random_state
+        # parameter setting
+        self.model_parameters = model_parameters or {}
+        self.fit_parameters = fit_parameters or {}
+        self.random_state = random_state
+        # These attributes get set by class methods. Initialising with None
+        self.model = model
         self.trained_model = trained_model
         self.X_train: pd.DataFrame | None = None
         self.y_train: np.ndarray | pd.Series | None = None
@@ -57,30 +65,46 @@ class ModelBuilder(ABC):
     @classmethod
     def from_split_data(
         cls,
-        X_train: pd.DataFrame | None,
-        y_train: np.ndarray | pd.Series | None,
-        X_test: pd.DataFrame | None,
-        y_test: np.ndarray | pd.Series | None,
-        model_parameters: dict,
-        random_state: int = 42,
+        X_train: pd.DataFrame,
+        y_train: np.ndarray | pd.Series,
+        X_test: pd.DataFrame,
+        y_test: np.ndarray | pd.Series,
         X_holdout: pd.DataFrame | None = None,
         y_holdout: np.ndarray | pd.Series | None = None,
+        random_state: int = 42,
+        model_parameters: dict | None = None,
+        fit_parameters: dict | None = None,
+        model: Any | None = None,
+        trained_model: Any | None = None,
     ) -> Self:
         instance = cls.__new__(cls)
-        instance.model_parameters = model_parameters
-        instance.model_parameters["random_state"] = random_state
-        instance.trained_model = None
+        # input datasets
         instance.X_train = X_train
         instance.y_train = np.array(y_train).ravel()
         instance.X_test = X_test
         instance.y_test = np.array(y_test).ravel()
         instance.X_holdout = X_holdout
         instance.y_holdout = np.array(y_holdout).ravel()
-        instance._build_model()
+        # variable names
+        instance.independent_variables = list(instance.X_train.columns)
+        if (
+            isinstance(instance.y_train, pd.Series)
+            and instance.y_train.name is not None
+        ):
+            instance.target_variable = str(instance.y_train.name)
+        else:
+            instance.target_variable = "y_true"
+        # parameter setting
+        instance.model_parameters = model_parameters or {}
+        instance.fit_parameters = fit_parameters or {}
+        instance.random_state = random_state
+        # These attributes get set by class methods. Initialising with None
+        instance.model = model
+        instance.trained_model = trained_model
         return instance
 
     @abstractmethod
-    def _build_model(self) -> None:
+    def build_model(self) -> None:
         pass
 
     @abstractmethod
@@ -122,3 +146,25 @@ class ClassifierBuilder(ModelBuilder, ABC):
             input_holdout_data=input_holdout_data,
             trained_model=trained_model,
         )
+
+        def split_data_by_independent_and_target_variables(self) -> Self:
+            self.X_train = self.input_train_data[self.independent_variables].copy()
+            self.y_train = np.array(
+                self.input_train_data[[self.target_variable]].copy()
+            ).ravel()
+
+            self.X_test = self.input_test_data[self.independent_variables].copy()
+            self.y_test = np.array(
+                self.input_test_data[[self.target_variable]].copy()
+            ).ravel()
+
+            if self.input_holdout_data is not None:
+                self.X_holdout = self.input_holdout_data[
+                    self.independent_variables
+                ].copy()
+                self.y_holdout = np.array(
+                    self.input_holdout_data[[self.target_variable]].copy()
+                ).ravel()
+                return self
+
+            return self
