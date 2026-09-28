@@ -29,7 +29,7 @@ applyTo: '.github/workflows/**'
 
 ## CI job
 
-- CI runs as a single job on `ubuntu-latest` / Python 3.11 — there's no
+- CI runs as a single job on `ubuntu-latest` / Python 3.13 — there's no
   matrix. This is a local analysis project, not a cross-platform library;
   one environment is the one that matters. If cross-platform or
   multi-version behaviour ever becomes a real concern, add a matrix then,

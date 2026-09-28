@@ -32,7 +32,15 @@ jobs:
         run: uv python install 3.13
 
       - name: Sync dependencies
-        run: uv sync --all-groups --python 3.13
+        # --locked fails if uv.lock is out of date with pyproject.toml, rather
+        # than silently re-resolving. Fix locally with `uv lock`.
+        run: uv sync --locked --all-groups --python 3.13
+
+      - name: Check notebooks have no outputs
+        # Backstop for the nbstripout pre-commit hook, which only runs where
+        # it has been installed. Keep the version in step with
+        # .pre-commit-config.yaml.
+        run: uvx nbstripout==0.9.1 --verify notebooks/*.ipynb
 
       - name: Ruff format check
         run: uv run ruff format --check .

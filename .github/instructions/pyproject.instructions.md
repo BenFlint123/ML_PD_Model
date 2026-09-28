@@ -25,7 +25,7 @@ tool configuration. Don't split things into separate config files
 
 ## Tool configuration
 
-- `[tool.ruff]` — `target-version = "py311"`, `line-length = 88`. No
+- `[tool.ruff]` — `target-version = "py313"`, `line-length = 88`. No
   docstring rule enabled (`D1` is intentionally not selected) — notebooks
   and exploratory code shouldn't be blocked on missing docstrings.
 - `[tool.pytest.ini_options]` — **no `pythonpath` key**. The editable

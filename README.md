@@ -1,179 +1,196 @@
-# uv_ruff_ds_template
+# ML PD Model
 
-A lightweight scaffold for data-science work: `uv` + Ruff + Jupyter,
-structured so you can clone this, get a dataset, and start working
-immediately.
+[![CI](https://github.com/BenFlint123/ML_PD_Model/actions/workflows/ci.yml/badge.svg)](https://github.com/BenFlint123/ML_PD_Model/actions/workflows/ci.yml)
+![Python 3.13](https://img.shields.io/badge/python-3.13-blue)
+[![uv](https://img.shields.io/badge/deps-uv-DE5FE9)](https://docs.astral.sh/uv/)
+[![Ruff](https://img.shields.io/badge/lint-ruff-D7FF64)](https://docs.astral.sh/ruff/)
+[![License: BSD-3](https://img.shields.io/badge/license-BSD--3--Clause-green)](LICENSE)
 
-> **Status:** Template scaffold. `lib/` is a stub for whatever reusable
-> code you like to bring into your analysis — add modules to it as
-> patterns emerge from your notebooks. Leave the name as-is unless you'd
-> prefer something more specific.
+A sandbox for applying machine learning to **credit risk**, starting with
+**probability of default (PD)** models for retail credit cards.
 
----
+Models are built as **champion / challenger** pairs. An interpretable
+logistic regression, the standard in regulated credit risk, is benchmarked
+against more flexible ML models. The aim is to measure how much predictive
+power each approach adds, and what it costs in explainability.
 
-## Using this template
-
-How you acquire the template depends on whether you're free to create the
-destination repo yourself, or your org requires it to be created some
-other way first (e.g. through an internal portal), which usually means it
-already exists with its own initial commit before you get to it.
-
-**If you can create the destination repo directly:** use GitHub's "Use
-this template" button, or:
-
-```powershell
-gh repo create my-project --template BenFlint123/uv_ruff_ds_template --clone
-cd my-project
-```
-
-**If the destination repo already exists** (so "Use this template" can't
-target it), import the template's files with a squash-merge instead —
-this pulls in the current file contents as a single clean commit, without
-importing the template's own commit history:
-
-```powershell
-git clone <your-new-repo-url>
-cd <your-new-repo>
-git remote add template https://github.com/BenFlint123/uv_ruff_ds_template.git
-git fetch template
-git checkout -b add-template-scaffold
-git merge --squash --allow-unrelated-histories template/main
-```
-
-This will likely conflict on files your repo already has (commonly
-`README.md` and `.gitignore`, if it was created with either). Check
-`git status` for the conflicted files, open each one, and — assuming you
-want the template's version — resolve it with:
-
-```powershell
-git checkout --theirs <path>
-git add <path>
-```
-
-Then commit, push the branch, and open a pull request into your default
-branch so CI runs on it before you merge:
-
-```powershell
-git commit -m "Add data-science project scaffold from template"
-git push -u origin add-template-scaffold
-```
-
-**Either way, once you have the template's files in your repo**, work
-through this checklist before adding your own code:
-
-1. **Pick a package name** (PEP 8: lowercase, ideally one word) — or leave
-   it as `lib`; it's generic on purpose and doesn't need renaming. If you
-   do rename, global-replace `lib` across the workspace, including:
-   - the directory `lib/`
-   - `pyproject.toml` (`name`, hatch `packages`, ruff `src` /
-     `known-first-party`, `--cov=…`, `coverage.run.source`)
-   - `tests/test_smoke.py`
-   - `.github/copilot-instructions.md`, `.github/instructions/*.md`
-   - `.pre-commit-config.yaml` (`files:` patterns)
-   - `README.md` and `CONTRIBUTING.md` prose references
-2. **Set the project name and description** in `README.md` (the title and
-   the `cd <repo>` line in the clone snippet) and `pyproject.toml`
-   (`description`).
-3. **Update the repository URL** in `pyproject.toml` (`[project.urls]
-   Repository`), `.github/ISSUE_TEMPLATE/config.yml` (both `url:` fields),
-   and `SECURITY.md` (the "Report a vulnerability" link).
-4. **Review `LICENSE`**, **`.github/CODEOWNERS`**, and the `authors` field
-   in `pyproject.toml` — update the copyright holder / owner if this isn't
-   your project.
-5. Run `uv sync --all-groups` to generate a fresh `uv.lock`.
+> **Status: work in progress.** A logistic regression champion and a
+> LightGBM challenger are trained and evaluated. See the [roadmap](#roadmap)
+> for what comes next.
 
 ---
 
-## Quick start
+## Motivation
 
-This project uses [`uv`](https://docs.astral.sh/uv/) to manage the Python
-toolchain, virtual environment and dependencies. You do **not** need a
-system-wide Python 3.11 — `uv` will fetch one for you.
+This project applies techniques from the
+[MIT MicroMasters in Statistics and Data Science](https://micromasters.mit.edu/ds/)
+to the credit risk domain. The goal is a set of worked examples, and
+reusable tooling, for exploring ML approaches to credit risk problems.
 
-```powershell
-# 1. Install uv (one-time, if you don't have it):
-#    https://docs.astral.sh/uv/getting-started/installation/
+Two datasets are used, on purpose:
 
-# 2. Clone & enter the repo
-git clone <your-repo-url>
-cd uv_ruff_ds_template
+1. **Taiwan credit card defaults:** clean and well documented. Used to build
+   proofs of concept quickly.
+2. **Lending Club loans:** much larger and messier. Used to test and iterate
+   on the approaches that work on the Taiwan data.
 
-# 3. Install Python 3.11 (managed by uv) and pin the project to it
-uv python install 3.11
-uv python pin 3.11
+---
 
-# 4. Create the venv and install the project + dev dependencies
-uv venv
-uv sync --all-groups
+## Results so far
 
-# 5. Install pre-commit hooks
-uv run pre-commit install
-uv run pre-commit install --hook-type pre-push
+![ROC curves for the champion and challenger models on the test set](docs/images/roc_comparison.png)
+
+| Model | Role | Train Gini | Test Gini | Test AUC |
+|---|---|---:|---:|---:|
+| Logistic regression | Champion | 0.459 | **0.420** | 0.710 |
+| LightGBM (default params) | Challenger | 0.769 | **0.551** | 0.776 |
+
+Evaluated on a stratified 20% test set of 6,000 accounts.
+Gini = 2 × AUC − 1, the standard measure of discrimination in credit risk.
+
+**Takeaways**
+
+- The untuned challenger improves on the champion by about 13 Gini points.
+  This suggests there is non-linear signal the linear model misses.
+- Both models separate the highest-risk accounts about equally well (the
+  bottom left of the ROC curve). The challenger's advantage comes in the
+  middle of the score range.
+- The challenger's train Gini (0.77) is much higher than its test Gini
+  (0.55), which shows it overfits with default settings. Tuning comes
+  before any conclusion is drawn about the champion.
+
+To regenerate the figure and table, run
+`uv run python scripts/make_readme_figure.py`.
+
+---
+
+## Datasets
+
+### Taiwan credit card defaults (current)
+
+[Default of Credit Card Clients](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients),
+from the UCI Machine Learning Repository (Yeh & Lien, 2009).
+
+- 30,000 credit card holders from a Taiwanese bank, as of October 2005
+- Target: default on next month's payment (base rate 22.1%)
+- 23 features: credit limit, demographics, and six months each of
+  repayment status, bill amounts and payment amounts
+
+**Key data decisions** (documented in full in
+[`00_EDA_Taiwan_dataset`](notebooks/00_EDA_Taiwan_dataset.ipynb)):
+
+- **Undocumented category codes:** `EDUCATION` values 0, 5 and 6 are mapped
+  to "other" (4), and `MARRIAGE` value 0 is mapped to "other" (3).
+- **Repayment status (`PAY_*`):** the data dictionary defines only −1 and
+  1 to 9, but −2 and 0 appear in large volumes. For now they are treated
+  as ordinal-numeric, using the common reading of −2 as "no consumption"
+  and 0 as "revolving credit". This is a known limitation: it assumes an
+  ordering for codes whose meaning is unverified.
+
+### Lending Club (exploration)
+
+[Lending Club accepted loans, 2007 to 2018](https://zenodo.org/records/11295916).
+Initial exploration only, in [`01_EDA_LCData`](notebooks/01_EDA_LCData.ipynb).
+
+Neither dataset is committed to the repo. To reproduce, download the raw
+files into `data/raw/`.
+
+---
+
+## Approach
+
+| Notebook | Purpose |
+|---|---|
+| [`00_EDA_Taiwan_dataset`](notebooks/00_EDA_Taiwan_dataset.ipynb) | Profiling, variable typing, cleaning of undocumented codes |
+| [`01_EDA_LCData`](notebooks/01_EDA_LCData.ipynb) | First look at the Lending Club data |
+| [`02_Data_preparation_Taiwan_Dataset`](notebooks/02_Data_preparation_Taiwan_Dataset.ipynb) | Stratified 80/20 train/test split |
+| [`03_champion_logistic`](notebooks/03_champion_logistic.ipynb) | Logistic regression in an sklearn `Pipeline` (scaling + one-hot encoding) |
+| [`04_challenger_LightGBM`](notebooks/04_challenger_LightGBM.ipynb) | LightGBM challenger, built with the shared `ModelBuilder` interface |
+
+Reusable modelling code lives in [`lib/`](lib/), not in the notebooks.
+[`lib/model_development.py`](lib/model_development.py) defines an abstract
+`ModelBuilder` base class. It fixes a common interface (`train`,
+`predict_*`, `run`) and supports an optional out-of-time hold-out sample.
+New challengers plug into the same comparison without the evaluation code
+changing.
+
+Shared constants, including paths, the random seed, the target variable
+and feature lists, are kept in a single [`config.py`](config.py), so the
+notebooks don't hard-code them.
+
+---
+
+## Getting started
+
+Requires [uv](https://docs.astral.sh/uv/getting-started/installation/).
+uv installs the correct Python version for you.
+
+```bash
+git clone https://github.com/BenFlint123/ML_PD_Model.git
+cd ML_PD_Model
+uv sync --all-groups                 # create the venv, install deps + lib (editable)
+uv run pre-commit install            # optional: enable the git hooks
+uv run pytest                        # check everything works
 ```
 
-Verify the install:
+Put the raw dataset in `data/raw/`, then run the notebooks in numerical
+order:
 
-```powershell
-uv run python -c "import lib; print('lib import OK')"
-uv run pytest -q
+```bash
 uv run jupyter lab
 ```
 
-Drop your dataset into `data/raw/`, open a notebook under `notebooks/`, and
-`import lib` works immediately — no extra setup.
-
-## Project structure & workflow
+### Project structure
 
 ```
-data/
-├── raw/         # dataset exactly as received — never edited in place
-├── interim/     # working intermediate outputs
-└── processed/   # final, analysis-ready data notebooks actually read from
-notebooks/       # exploration, numbered by topic (01_explore.ipynb, ...)
-lib/              # reusable code shared across notebooks (stub package)
-tests/            # tests for lib/
+├── config.py                  # paths, seeds, feature lists, category mappings
+├── data/                      # gitignored: raw → interim → processed
+├── docs/images/               # figures used in this README
+├── lib/
+│   └── model_development.py   # ModelBuilder ABC + LightGBM implementation
+├── notebooks/                 # numbered analysis pipeline (00 → 04)
+├── scripts/                   # reproducible figure generation
+└── tests/                     # pytest suite for lib/
 ```
 
-- **`data/`** — all three subfolders are gitignored except a `.gitkeep`
-  marker, so the folders exist after a fresh clone but no data is ever
-  committed. `raw/` is the dataset untouched; `interim/` holds your working
-  intermediate outputs; `processed/` is what your notebooks should actually
-  read from for analysis.
-- **`notebooks/`** — exploratory work. Name files with a numeric prefix
-  (`01_explore.ipynb`) so the investigation order is visible in the file
-  list. `nbstripout` strips cell outputs automatically before each commit,
-  keeping diffs readable.
-- **`lib/`** — anything you end up reusing across more than one notebook:
-  data loading, cleaning, data-quality checks, plotting helpers. For
-  example, a function in `lib/dq.py` is used from any notebook via:
-  ```python
-  from lib.dq import check_missing_rates
-  ```
-  This works with no `sys.path` setup because `uv sync` installs `lib` in
-  editable mode — the same mechanism in VS Code, plain `jupyter lab`,
-  scripts, and pytest.
-- **`tests/`** — tests for `lib/` code, not the notebooks themselves.
+---
 
-Need to pull in another project of yours that's already packaged and
-released (not on PyPI)? No PyPI required — `uv` installs directly from git:
-```powershell
-uv add "pkgname @ git+https://github.com/org/repo.git@vX.Y.Z"
-```
+## Engineering practices
 
-## Day-to-day commands
+- **Tested:** `lib/` has a pytest suite that runs on synthetic data, so it
+  needs no data download. It covers the builders' interfaces, error
+  handling, reproducibility and the two construction paths.
+- **Reproducible environment:** dependencies are locked in `uv.lock`, and
+  `pyproject.toml` is the single source of truth. A fixed seed is used for
+  every split and model fit.
+- **CI on every PR:** GitHub Actions runs a Ruff format check, lint and
+  pytest. Actions are SHA-pinned and kept up to date by Dependabot.
+- **Pre-commit hooks:** Ruff and `nbstripout` run on commit, so notebooks
+  are committed without outputs and diffs stay readable. Tests run on push.
+- **No data in git:** the `data/` directory is gitignored end to end.
 
-```powershell
-uv run pytest                     # run tests for lib/ + coverage report
-uv run ruff format .              # format
-uv run ruff check . --fix         # lint + autofix
-uv run pre-commit run --all-files # all commit-stage hooks
-uv run jupyter lab                # start notebook server
-```
+---
 
-## Contributing
+## Roadmap
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+This is the near-term plan. It will be extended as the project develops.
+
+- [x] Logistic regression champion
+- [x] LightGBM challenger, built on a shared `ModelBuilder` interface
+- [x] Unit tests for the model builders
+- [ ] Linear and logistic regression baselines built on `ModelBuilder`
+- [ ] Random forest challenger
+- [ ] Hyperparameter tuning (cross-validated) for the challengers
+- [ ] Basic feature selection
+- [ ] Carry the pipeline over to the Lending Club data
+
+---
 
 ## License
 
-BSD 3-Clause — see [LICENSE](LICENSE).
+BSD 3-Clause, see [LICENSE](LICENSE).
+
+The Taiwan dataset is provided by the UCI Machine Learning Repository under
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Yeh, I-C. (2009).
+*Default of Credit Card Clients* [Dataset].
+https://doi.org/10.24432/C55S3H
