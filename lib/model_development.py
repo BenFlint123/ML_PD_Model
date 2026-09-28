@@ -23,8 +23,7 @@ class ModelBuilder(ABC):
         self.input_holdout_data = input_holdout_data
         self.independent_variables = independent_variables
         self.target_variable = target_variable
-        self.model_parameters = model_parameters
-        self.model_parameters["random_state"] = random_state
+        self.model_parameters = {**model_parameters, "random_state": random_state}
         self.trained_model = trained_model
         self.X_train: pd.DataFrame | None = None
         self.y_train: np.ndarray | pd.Series | None = None
@@ -47,15 +46,14 @@ class ModelBuilder(ABC):
         y_holdout: np.ndarray | pd.Series | None = None,
     ) -> Self:
         instance = cls.__new__(cls)
-        instance.model_parameters = model_parameters
-        instance.model_parameters["random_state"] = random_state
+        instance.model_parameters = {**model_parameters, "random_state": random_state}
         instance.trained_model = None
         instance.X_train = X_train
         instance.y_train = np.array(y_train).ravel()
         instance.X_test = X_test
         instance.y_test = np.array(y_test).ravel()
         instance.X_holdout = X_holdout
-        instance.y_holdout = np.array(y_holdout).ravel()
+        instance.y_holdout = None if y_holdout is None else np.array(y_holdout).ravel()
         instance._build_model()
         return instance
 
@@ -213,13 +211,14 @@ def main():
         print(f"{k}: \n{v}\n")
 
     model_params_dict = {"verbose": 2}
-    results_dict = lgbm_model = LightGbmModelBuilder.from_split_data(
+    results = LightGbmModelBuilder.from_split_data(
         datasets["X_train"],
         datasets["y_train"],
         datasets["X_test"],
         datasets["y_test"],
         model_params_dict,
     ).run()
+    print(f"Test predictions: \n{results['pred_test']}")
 
 
 if __name__ == "__main__":

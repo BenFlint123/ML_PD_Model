@@ -1,19 +1,17 @@
-# Contributing to lib
+# Contributing to ML_PD_Model
 
 ## First-time setup
 
 After cloning the repository:
 
 ```powershell
-uv python install 3.11
-uv python pin 3.11
-uv venv
 uv sync --all-groups
 uv run pre-commit install
 uv run pre-commit install --hook-type pre-push
 ```
 
-- `uv` will fetch and manage Python 3.11 — no system install required.
+- `uv` will fetch and manage Python 3.13 (pinned in `.python-version`) — no
+  system install required.
 - `uv sync --all-groups` installs `lib` (editable) plus the `dev`
   dependency group, creating `.venv/` and `uv.lock`.
 - The two `pre-commit install` commands register the git hooks: lint/format
@@ -60,7 +58,7 @@ uv run ruff check . --fix
 uv run pytest
 ```
 
-CI runs the same checks on `ubuntu-latest` / Python 3.11 against every PR.
+CI runs the same checks on `ubuntu-latest` / Python 3.13 against every PR.
 
 ## Pull request conventions
 
@@ -76,7 +74,7 @@ Prefix PR titles with the type of change. Supported types:
 - `deps` — dependency updates
 - `revert` — reverts a previous commit
 
-Example: `feat: add churn feature helpers`
+Example: `feat: add random forest challenger`
 
 Link related issues in the PR description using `Closes #<issue>` or
 `Relates to #<issue>`.

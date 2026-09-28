@@ -8,7 +8,7 @@ give attackers a head start.
 
 Instead, use GitHub's *Private Vulnerability Reporting* feature:
 
-- [Report a vulnerability](https://github.com/BenFlint123/uv_ruff_ds_template/security/advisories/new)
+- [Report a vulnerability](https://github.com/BenFlint123/ML_PD_Model/security/advisories/new)
 
 This creates a private draft advisory visible only to maintainers until a
 fix is coordinated.

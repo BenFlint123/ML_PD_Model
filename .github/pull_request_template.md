@@ -3,7 +3,7 @@
 - Prefix your PR title with the type of change you're making. Supported Types: **feat, fix, refactor, perf, test, docs, build, ci, revert, deps**.
 - Make your title succinct and descriptive.
 
-- (Good Example) **feat: add churn feature helpers**
+- (Good Example) **feat: add random forest challenger**
 -->
 ## Related Issue / Ticket
 

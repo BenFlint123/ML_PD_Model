@@ -1,4 +1,4 @@
-# uv_ruff_ds_template — AI Coding Guide
+# ML_PD_Model — AI Coding Guide
 
 Workspace-wide guidance. Path-scoped instructions live under
 [`.github/instructions/`](./instructions/) and are loaded automatically when
@@ -6,11 +6,17 @@ you edit matching files.
 
 ## Project overview
 
-This is a lightweight data-science project scaffold: notebooks for
-exploration, a small `lib/` package for code shared across notebooks, and a
-`data/` folder for local artifacts. The goal is that someone can clone this,
-run `uv sync`, and start working on a dataset immediately — no manual setup
-beyond that.
+A sandbox for applying ML approaches to credit risk, specifically
+probability of default (PD) modelling. Interpretable champion models (e.g.
+logistic regression) are benchmarked against ML challengers (e.g. LightGBM).
+Proofs of concept are built on the clean Taiwan credit card dataset, then
+tested and iterated on the larger, messier Lending Club dataset.
+
+Layout: numbered notebooks for exploration and modelling, a `lib/` package
+for reusable modelling code (see `lib/model_development.py`), shared
+constants in `config.py`, and a gitignored `data/` folder. Someone should be
+able to clone this, run `uv sync`, drop the raw data in `data/raw/`, and run
+the notebooks in order.
 
 ## Stable conventions
 
@@ -28,7 +34,7 @@ beyond that.
   — don't disable it or hand-edit notebook JSON to work around it.
 - **`pyproject.toml` + `uv.lock` are the source of truth for dependencies.**
   No `requirements.txt`, no `setup.py`.
-- **Python 3.11 minimum** (pinned via `.python-version`).
+- **Python 3.13 minimum** (pinned via `.python-version`).
 
 ## Tooling
 
@@ -50,7 +56,7 @@ analysis work. Add any of it back per-project if a specific need arises.
 Prefix PR titles with the type of change. Supported types:
 `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `build`, `ci`, `deps`, `revert`.
 
-Example: `feat: add churn feature helpers`.
+Example: `feat: add random forest challenger`.
 
 Link related issues in the PR body using `Closes #<n>` or `Relates to #<n>`.
 
